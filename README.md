@@ -1,176 +1,131 @@
 # Focos em Aberto — Dashboard (base)
 
-Dashboard HTML de **Ordens de Trabalho / focos em aberto** (todos os concelhos).
+Dashboard web estático de **Ordens de Trabalho (OT)** em aberto, para todos os concelhos.
 
-Publicação recomendada: **GitHub Pages** (conta gratuita).
+Esta pasta contém a **versão de referência** pronta para **GitHub Pages**.
 
----
+## Ficheiros
 
-## Conteúdo deste repositório
-
-| Ficheiro | Função |
-|----------|--------|
-| `index.html` | Dashboard base completo (abrir no browser / GitHub Pages) |
+| Ficheiro | Descrição |
+|----------|-----------|
+| `index.html` | Dashboard base (publicar na raiz do repositório) |
 | `README.md` | Este guia |
 
-**Não** incluir o ficheiro `Focos_Aberto.csv` neste repositório (dados operacionais).
+## O que inclui
 
----
+- Layout tema escuro (KPIs, gráficos Chart.js, tabela, modal)
+- **Filtros multi** (Concelho, Estado, Executante, Idade): a lista **permanece aberta** para marcar várias opções; fecha com **Fechar**, clique fora, Escape ou ao abrir outro filtro
+- Carga automática via **ponte Google Apps Script** (URL **já embutido** no HTML)
+- Intervalo Manual / 5 / 15 / 30 / 60 min + **Atualizar agora**
+- **Carregar CSV** manual (fallback)
+- Exportar **CSV** e **PDF** (A4 landscape)
+- Clique na linha → detalhe completo da OT
+- Ordenação por **Idade (dias)** decrescente
+- Cache local no browser se a ponte falhar
 
-## Arquitetura de dados
+## Dados
+
+| Peça | Onde fica |
+|------|-----------|
+| Dashboard (`index.html`) | **GitHub Pages** |
+| CSV `Focos_Aberto.csv` | **Google Drive** (substituir no **mesmo** ficheiro) |
+| Ponte Apps Script | **Google** (Web App `/exec`) |
+
+**Não** é necessário colocar o CSV no GitHub.
+
+Fluxo:
 
 ```text
-Focos_Aberto.csv  (Google Drive — substituir o mesmo ficheiro)
+CSV no Drive (Substituir, mesmo ID)
         ↓
-Ponte Google Apps Script  (Web App /exec)
+Ponte Apps Script (/exec)
         ↓
-index.html  (este dashboard — GitHub Pages ou local)
+Dashboard no GitHub Pages
 ```
 
-- O HTML **não** lê o Drive diretamente (o browser bloqueia — CORS).
-- A **ponte** lê o CSV no Drive e devolve texto ao dashboard.
-- Atualização: ao abrir + intervalo (5 / 15 / 30 / 60 min) ou **Atualizar agora**.
-- Fallback: **Carregar CSV** manual + cache no browser.
+## Publicar no GitHub Pages
 
-### URL da ponte (já embutido no `index.html`)
+1. Criar repositório público, por exemplo: `focos-em-aberto`
+2. Fazer upload de `index.html` e `README.md` para a **raiz** (`main`)
+3. **Settings → Pages**
+   - Source: **Deploy from a branch**
+   - Branch: `main`
+   - Folder: `/ (root)`
+   - Save
+4. Esperar 1–2 minutos
+5. Abrir: `https://SEU_USER.github.io/focos-em-aberto/`
+
+Os utilizadores **não** precisam de configurar a ponte: o URL `/exec` já está no `index.html`.
+
+## Atualizar dados (dia a dia)
+
+1. Exportar/enviar o novo `Focos_Aberto.csv` para o Drive
+2. Escolher **Substituir** no ficheiro existente (manter o mesmo ID)
+3. No dashboard: **Atualizar agora** ou aguardar o intervalo
+
+Não é preciso republicar o Apps Script nem o GitHub quando só mudam os dados do CSV.
+
+## Atualizar o dashboard (código)
+
+1. Substituir o `index.html` no repositório (upload ou commit)
+2. Esperar o Pages atualizar (por vezes 1–2 min; hard refresh no browser: Ctrl+F5)
+
+## Ponte Apps Script
+
+O `index.html` já inclui:
 
 ```text
 https://script.google.com/macros/s/AKfycbxPccM5PeYV4ztE4mZxT-r3o6p0xkZiFqVef9hbQBkBaCfz-hyJ0j01F0jmMTTvHMwL/exec
 ```
 
-Se republicar a Web App e o URL mudar, atualize `APPS_SCRIPT_URL` no `index.html` (ou use **Config. ponte** no ecrã).
+Se a Web App for republicada e o URL mudar:
 
-### CSV no Drive
+1. Editar no `index.html` a constante `APPS_SCRIPT_URL`
+2. Voltar a fazer upload do `index.html`
 
-- ID de referência: `16i0LgU-Bybbvwj9UOL9q5Xd7tz9k8LE6`
-- Ao enviar dados novos: **Substituir** o mesmo ficheiro (não criar cópia com ID novo).
+### Requisitos da Web App
 
----
+- Tipo: **Aplicação Web**
+- Executar como: **Eu**
+- Quem tem acesso: **Qualquer pessoa** (para o browser conseguir fazer `fetch` sem login)
+- O script deve ler o CSV do Drive (ID de referência no HTML: `16i0LgU-Bybbvwj9UOL9q5Xd7tz9k8LE6`)
 
-## Publicar no GitHub Pages (conta gratuita)
+## Família de dashboards
 
-### 1. Criar repositório
+| Repo / pasta | Âmbito |
+|--------------|--------|
+| **focos-em-aberto** (esta) | Todos os concelhos — **base de referência** |
+| focos-abertos-caceiro | CONDEIXA-A-NOVA · SOURE · PENELA |
+| focos-abertos-coimbra | Só COIMBRA |
 
-1. [https://github.com/new](https://github.com/new)
-2. Nome sugerido: `focos-em-aberto` (ou outro)
-3. Visibilidade: **Public** (mais simples para Pages na conta free)
-4. **Não** é obrigatório inicializar com README (este já existe)
+Todos podem partilhar a **mesma ponte** e o **mesmo CSV** no Drive.
 
-### 2. Enviar ficheiros
+## Segurança (nota)
 
-No repositório → **Add file** → **Upload files**:
+- O URL `/exec` fica visível no código-fonte do HTML (normal em site estático).
+- Quem tiver o link do site e o da ponte pode obter o CSV.
+- Tratar o link do Pages e o da ponte como **uso interno** da equipa.
+- Preferir **não** publicar o CSV operacional no GitHub.
 
-- `index.html`
-- `README.md`
+## Utilização rápida
 
-Commit para a branch `main` (ou `master`).
-
-### 3. Ativar Pages
-
-1. **Settings** → **Pages**
-2. **Build and deployment** → Source: **Deploy from a branch**
-3. Branch: `main` · pasta: `/ (root)`
-4. **Save**
-5. Esperar 1–2 minutos
-
-### 4. Abrir o dashboard
-
-```text
-https://SEU_UTILIZADOR.github.io/focos-em-aberto/
-```
-
-(substitua `SEU_UTILIZADOR` e o nome do repo)
-
-O link deve **executar** o dashboard (não mostrar código-fonte como no Google Drive).
-
----
-
-## Utilização
-
-| Ação | Resultado |
-|------|-----------|
-| Abrir o URL Pages | Carrega OT via ponte (todos os concelhos) |
-| **Atualizar agora** | Novo pedido à ponte |
-| **Intervalo** | Manual / 5 / 15 / 30 / 60 min |
-| Filtros | Concelho · Estado · Executante · Idade (multi) |
-| Clique na linha | Modal com todos os campos da OT |
-| **Exportar CSV / PDF** | Vista filtrada atual |
-| **Carregar CSV** | Fallback se a ponte falhar |
-| **Config. ponte** | Só se o URL `/exec` mudar |
-
-### Regras de negócio (base)
-
-- **Concelho** = coluna Concelho (≠ Freguesia)
-- Gráfico **OT por Concelho** = conta OT
-- Gráfico **Focos por Executante** = soma focos (extraídos de `Descrição`)
-- Coluna **Comentários** = campo Comentários (não Observations)
-- Tabela ordenada por **Idade (dias)** decrescente
-- KPIs sem idade média
-
----
-
-## Atualizar dados no dia a dia
-
-1. Gerar / exportar `Focos_Aberto.csv` (JUMP ou processo habitual).
-2. No Google Drive → **Substituir** o ficheiro existente (mesmo ID).
-3. No dashboard → **Atualizar agora** ou aguardar o intervalo.
-
-Não é preciso republicar o GitHub quando só mudam os dados do CSV.  
-Só é preciso novo upload do `index.html` quando alterar o **código** do dashboard.
-
----
-
-## Segurança (importante)
-
-- Repo **público** + HTML com URL da ponte: quem tiver o link do site pode, em princípio, obter o CSV via ponte.
-- Trate o URL do GitHub Pages e o `/exec` como **uso interno** da equipa.
-- Não publique o CSV com dados sensíveis no GitHub.
-- A Web App deve manter o modelo que já funciona na vossa operação (acesso compatível com `fetch` do browser).
-
----
+1. Abrir o link Pages
+2. Confirmar barra de estado: **Origem: Ponte Apps Script**
+3. Usar filtros (multi-seleção sem fechar a cada clique)
+4. **Limpar filtros** no header para repor tudo
+5. Exportar CSV/PDF conforme necessário
 
 ## Resolução de problemas
 
-| Sintoma | O que verificar |
-|---------|-----------------|
-| `Failed to fetch` / falha na ponte | Web App ativa? URL `/exec` correto? Acesso da app? |
-| Dados antigos | **Substituir** CSV no Drive + **Atualizar agora**; cache do Google pode atrasar 1–2 min |
-| Pages 404 | Branch e pasta em Settings → Pages; ficheiro na raiz chama-se `index.html` |
-| Aparece código em vez do dashboard | Está a abrir o ficheiro no Drive/preview — use o URL **github.io** |
-| Ponte devolve erro | Conta que publicou o script ainda tem acesso ao CSV no Drive |
+| Sintoma | Verificação |
+|---------|-------------|
+| Falha ao atualizar / Failed to fetch | Rede; Web App ativa; acesso “Qualquer pessoa” |
+| HTTP 403 | Republicar a Web App e autorizar de novo |
+| Dados antigos | Substituir CSV no Drive + **Atualizar agora**; Ctrl+F5 no Pages |
+| Lista de filtros fecha logo | Confirmar que está a usar **este** `index.html` (versão com painel persistente) |
+| CSV manual | Usar **Carregar CSV** como fallback |
 
----
+## Referência de desenvolvimento
 
-## Relação com o dashboard Caceiro
-
-| Dashboard | Âmbito | Repo sugerido |
-|-----------|--------|----------------|
-| **Este (base)** | Todos os concelhos | `focos-em-aberto` |
-| **Caceiro** | Só CONDEIXA-A-NOVA, SOURE, PENELA | `focos-abertos-caceiro` |
-
-Ambos podem usar a **mesma ponte** e o **mesmo CSV** no Drive.  
-O corte de concelhos no Caceiro é feito **só** no HTML Caceiro.
-
----
-
-## Notas técnicas
-
-- Stack: HTML + CSS + JavaScript (Chart.js, jsPDF, autoTable via CDN).
-- Sem build, sem Node, sem servidor próprio além do GitHub Pages.
-- Cache local: `localStorage` (`focosAbertoDashboard_v7`).
-- CSV: separador `;`, encoding UTF-8 (BOM opcional).
-
----
-
-## Checklist rápido de publicação
-
-- [ ] Repo criado (público)
-- [ ] `index.html` + `README.md` na raiz
-- [ ] Pages ativo (`main` → `/root`)
-- [ ] Abrir `https://USER.github.io/REPO/`
-- [ ] Estado: **Origem: Ponte Apps Script** e OT > 0
-- [ ] Partilhar só o link Pages com a equipa
-
----
-
-*Dashboard base — Focos em Aberto. CSV no Google Drive · ponte Apps Script · UI no GitHub Pages.*
+A base local de trabalho validada é `focos-aberto-dashboard.html`.  
+Este `index.html` é a cópia de publicação para GitHub Pages, com a **ponte incluída** e alinhada a essa referência (incluindo filtros multi sem fechar a cada seleção).
